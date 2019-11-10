@@ -1,0 +1,22 @@
+.ContextMenu{
+  position: absolute;
+  list-style: none;
+  margin:0;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #efefef;
+  display: flex;
+  flex-direction: column;
+}
+
+.ContextMenu__btn{
+  border: none;
+  width: 100%;
+  background: none;
+  text-align: left;
+}
+
+.ContextMenu__btn:hover{
+  background: #555555;
+  color: #fff;
+}
