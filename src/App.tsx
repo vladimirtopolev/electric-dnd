@@ -1,4 +1,4 @@
-import React, {useState, MouseEvent, KeyboardEvent} from 'react';
+import React, {useState, MouseEvent, KeyboardEvent, WheelEvent} from 'react';
 import {ConnectorPoint, Point, Element, Connector, DraggedElement} from './types';
 import GeneratorElement from './electricComponents/Generator';
 
@@ -11,11 +11,24 @@ import SelectinArea from './elements/SelectingArea';
 import useContextMenuElement from './helpers/useContextMenuElement';
 import getMoveDirection from './helpers/getMoveDirection';
 import isDeleteBtn from './helpers/isDeleteBtn';
-
+import {isArray} from 'lodash';
+import isPointBelongConnector from "./helpers/isPointBelongConnector";
 
 function App() {
     const [elements, setElements] = useState<Element[]>([]);
     const [connectors, setConnectors] = useState<Connector[]>([]);
+    const deleteElements = (deletingElements: Element | Element[]) => {
+        const deletedElements: Element[] = isArray(deletingElements) ? deletingElements : [deletingElements];
+        setElements(elements.reduce((memo, element) => {
+            const isDeletingElement = deletedElements.find(el => el.id === element.id);
+            return isDeletingElement ? memo : [...memo, element];
+        }, [] as Element[]));
+        setConnectors(connectors.reduce((memo, connector) => {
+            const isFirstElementDeleting = deletedElements.find(el => el.id === connector.first.element.id);
+            const isSecondElementDeleting = deletedElements.find(el => el.id === connector.second.element.id);
+            return (isFirstElementDeleting || isSecondElementDeleting) ? memo : [...memo, connector]
+        }, [] as Connector[]))
+    };
 
     const [doubleClickedElement, setDoubleClickedElement] = useState<Element>();
     const [draggedElement, setDraggedElement] = useState<DraggedElement>();
@@ -24,6 +37,7 @@ function App() {
     const [firstChosenElementConnectorPoint, setFirstChosenElementConnectorPoint] = useState<ConnectorPoint>();
     const [currentMousePosition, setCurrentMousePosition] = useState<Point>();
     const [selectedElements, setSelectedElements] = useState<Element[]>([]);
+    const [selectedConnectors, setSelectedConnectors] = useState<Connector[]>([]);
 
     const closeContextMenuElement = () => {
         setContextMenuElement(undefined);
@@ -32,7 +46,10 @@ function App() {
 
     const [firstPointOfSelectingArea, setFirstPointOfSelectingArea] = useState<Point>();
 
-    const doubleClickElementHandler = (el: Element) => setDoubleClickedElement(el);
+    const doubleClickElementHandler = (el: Element, e: MouseEvent) => {
+        e.preventDefault();
+        setDoubleClickedElement(el)
+    };
     const mouseDownElementHandler = (element: Element, e: MouseEvent) => {
         e.stopPropagation();
         setDraggedElement({element, offset: {x: element.x - e.clientX, y: element.y - e.clientY}});
@@ -44,8 +61,25 @@ function App() {
     };
     const mouseDownConnectorHandler = (element: Element, connectorPointIndex: number, e: MouseEvent) => {
         e.stopPropagation();
-        setFirstChosenElementConnectorPoint({element, connectorPointIndex});
-        setCurrentMousePosition({x: e.clientX, y: e.clientY});
+        if (selectedConnectors.length === 0) {
+            // it means client tries to create new connection
+            setFirstChosenElementConnectorPoint({element, connectorPointIndex});
+            setCurrentMousePosition({x: e.clientX, y: e.clientY});
+        } else {
+            // it means client probably tries to modify existed connection
+            const selectedConnector = selectedConnectors[0];
+            if (isPointBelongConnector({element, connectorPointIndex}, selectedConnector)){
+                const fixedConnectorPoint = selectedConnector.first.element.id === element.id
+                    ? selectedConnector.second : selectedConnector.first;
+                const updatedElementForFixedConnectorPoint = elements.find(el => el.id === fixedConnectorPoint.element.id);
+                setConnectors(connectors.filter(con => con.id !== selectedConnector.id));
+                setCurrentMousePosition({x: e.clientX, y: e.clientY});
+                setSelectedConnectors([]);
+                setFirstChosenElementConnectorPoint(updatedElementForFixedConnectorPoint
+                    ? {...fixedConnectorPoint, element: updatedElementForFixedConnectorPoint}
+                    : fixedConnectorPoint);
+            }
+        }
         setDraggedElement(undefined);
     };
     const mouseMoveConnectorHandler = (element: Element, connectorPointIndex: number, e: MouseEvent) => {
@@ -65,6 +99,10 @@ function App() {
             && connectorPointIndex === underElementConnectorPoint.connectorPointIndex;
     };
 
+    const onClickConnector = (connector: Connector) => {
+        setSelectedConnectors([connector]);
+    };
+
 
     return (
         <div style={{padding: 0, margin: 0, position: 'relative', outline: 'none'}}
@@ -73,12 +111,12 @@ function App() {
                  const baseShift = 2;
                  const offset = getMoveDirection(e);
                  const deleteElement = isDeleteBtn(e);
-
+                 if (deleteElement) {
+                     deleteElements(selectedElements);
+                     return;
+                 }
                  const newElements = elements.reduce((memo, el) => {
                      const isSelectedElement = selectedElements.find(selEl => selEl.id === el.id);
-                     if (deleteElement) {
-                         return isSelectedElement ? memo : [...memo, el];
-                     }
                      return isSelectedElement
                          ? [...memo, {...el, x: el.x + offset.dx * baseShift, y: el.y + offset.dy * baseShift}]
                          : [...memo, el];
@@ -87,10 +125,14 @@ function App() {
              }}>
             <svg width="100%"
                  height={500}
+                 onWheel={(e: WheelEvent<SVGSVGElement>) => {
+                     console.log(e)
+                 }}
                  onMouseDown={(e: MouseEvent) => {
                      closeContextMenuElement();
                      setSelectedElements([]);
                      setFirstPointOfSelectingArea({x: e.clientX, y: e.clientY});
+                     setSelectedConnectors([]);
                  }}
                  onMouseMove={(e: MouseEvent) => {
                      if (draggedElement) {
@@ -107,6 +149,7 @@ function App() {
                      if (firstChosenElementConnectorPoint && underElementConnectorPoint
                          && firstChosenElementConnectorPoint.element.id !== underElementConnectorPoint.element.id) {
                          setConnectors([...connectors, {
+                             id: (new Date()).getUTCMilliseconds().toString(),
                              first: firstChosenElementConnectorPoint,
                              second: underElementConnectorPoint
                          }]);
@@ -119,7 +162,13 @@ function App() {
                      e.preventDefault();
                  }}
             >
-
+                {connectors.map((connection, i) => {
+                    return <SvgConnector key={i}
+                                         connection={connection}
+                                         elements={elements}
+                                         selectedConnectors={selectedConnectors}
+                                         onConnectorClick={onClickConnector}/>;
+                })}
                 {elements.map((el, i) => {
                     const elementInstance = new SvgElement(
                         el, i,
@@ -132,9 +181,6 @@ function App() {
                         isActiveConnectorPoint);
                     return elementInstance.render(!!selectedElements.find(selEl => selEl.id === el.id));
                 })}
-                {connectors.map((connection, i) => {
-                    return <SvgConnector key={i} connection={connection} elements={elements}/>;
-                })}
                 {firstPointOfSelectingArea
                 && <SelectinArea start={firstPointOfSelectingArea}
                                  end={currentMousePosition}/>}
@@ -144,13 +190,14 @@ function App() {
             <div>
                 <button onClick={() => {
                     setElements([...elements, {...GeneratorElement, id: new Date().getUTCMilliseconds().toString()}]);
-                }}>Generator
+                }}>G
                 </button>
             </div>
             <EditElementModal doubleClickedElement={doubleClickedElement}
                               setDoubleClickedElement={setDoubleClickedElement}/>
             <ContextMenu contextMenuElement={contextMenuElement}
                          elements={elements}
+                         deleteElement={deleteElements}
                          setElements={setElements}
                          closeContextMenu={closeContextMenuElement}/>
         </div>

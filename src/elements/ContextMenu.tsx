@@ -3,8 +3,9 @@ import {ContextMenuElement, Element} from '../types';
 import './ContextMenu.styles.css';
 
 
-export default ({contextMenuElement, setElements, elements, closeContextMenu}: {
+export default ({contextMenuElement, setElements, elements, closeContextMenu, deleteElement}: {
     contextMenuElement: ContextMenuElement | undefined,
+    deleteElement: (element: Element) => void,
     elements: Element[],
     setElements: (e: Element[]) => void,
     closeContextMenu: () => void
@@ -42,7 +43,7 @@ export default ({contextMenuElement, setElements, elements, closeContextMenu}: {
             <li>
                 <button className="ContextMenu__btn"
                         onClick={() => {
-                            setElements(elements.filter(el => el.id !== element.id));
+                            deleteElement(element);
                             closeContextMenu();
                         }}>Удалить
                 </button>

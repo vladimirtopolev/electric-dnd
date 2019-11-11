@@ -5,6 +5,8 @@ export interface Point {
 
 export interface Element {
     id: string,
+    originX: number,
+    originY: number,
     x: number,
     y: number,
     rotate: number,
@@ -19,6 +21,7 @@ export interface ConnectorPoint {
 }
 
 export interface Connector {
+    id: string,
     first: ConnectorPoint,
     second: ConnectorPoint
 }
@@ -36,4 +39,14 @@ export interface DraggedElement {
 export interface Offset{
     dx: number,
     dy: number
+}
+
+export interface CartesianVector{
+    dx: number,
+    dy: number
+}
+
+export interface PolarVector {
+    r: number,
+    deg: number
 }

@@ -2,29 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1826023d-aad5-49f9-bcf7-48bcc8f46ef5" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/electricComponents/Generator.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/elements/ContextMenu.styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/elements/ContextMenu.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/elements/EditElementModal.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/elements/SelectingArea.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/elements/SvgConnector.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/elements/SvgDynamicConnector.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/elements/SvgElement.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/helpers/getMoveDirection.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/helpers/isClickedLeftMouseBtn.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/helpers/isDeleteBtn.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/helpers/useContextMenuElement.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/helpers/isPointBelongConnector.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/helpers/vectors.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/App.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/App.test.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/logo.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/serviceWorker.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/electricComponents/Generator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/electricComponents/Generator.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/ContextMenu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/ContextMenu.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/SvgConnector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgConnector.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/SvgDynamicConnector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgDynamicConnector.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/SvgElement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgElement.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/helpers/getMoveDirection.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/helpers/getMoveDirection.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/helpers/isDeleteBtn.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/helpers/isDeleteBtn.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/index.tsx" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -54,11 +44,12 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="$USER_HOME$/.nvm/versions/node/v8.4.0/bin/node" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="project.structure.last.edited" value="Project" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
-    <property name="ts.external.directory.path" value="$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external" />
+    <property name="ts.external.directory.path" value="$PROJECT_DIR$/node_modules/typescript/lib" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -122,6 +113,9 @@
       <option name="presentableId" value="Default" />
       <updated>1573383927283</updated>
       <workItem from="1573383928756" duration="30052000" />
+      <workItem from="1573461208893" duration="6462000" />
+      <workItem from="1573474252013" duration="4610000" />
+      <workItem from="1573481389140" duration="538000" />
     </task>
     <servers />
   </component>
@@ -133,7 +127,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>

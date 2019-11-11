@@ -27,16 +27,27 @@ export default class SvgElement {
             >
                 {this.element.render()}
                 {this.element.getConnectors().map((point, i) => {
-                    return <circle cx={point.x}
-                                   cy={point.y}
-                                   r={5}
-                                   key={i}
-                                   fill={'red'}
-                                   fillOpacity={
-                                       this.isActiveConnectorPoint(this.element, i) ? 1 : 0}
-                                   onMouseDown={(e: MouseEvent) => this.mouseDownConnectorHandler(this.element, i, e)}
-                                   onMouseMove={(e: MouseEvent) => this.mouseMoveConnectorHandler(this.element, i, e)}
-                    />;
+                    return (
+                        <>
+                            <circle cx={point.x}
+                                    cy={point.y}
+                                    r={10}
+                                    key={i}
+                                    fill={'black'}
+                                    fillOpacity={0}
+                                    onMouseDown={(e: MouseEvent) => this.mouseDownConnectorHandler(this.element, i, e)}
+                                    onMouseMove={(e: MouseEvent) => this.mouseMoveConnectorHandler(this.element, i, e)}/>
+                            <circle cx={point.x}
+                                    cy={point.y}
+                                    r={5}
+                                    key={i}
+                                    fill={'red'}
+                                    fillOpacity={
+                                        this.isActiveConnectorPoint(this.element, i) ? 1 : 0}
+                                    onMouseDown={(e: MouseEvent) => this.mouseDownConnectorHandler(this.element, i, e)}
+                                    onMouseMove={(e: MouseEvent) => this.mouseMoveConnectorHandler(this.element, i, e)}/>
+                        </>
+                    );
                 })}
                 {isActive && this.element.renderBorderArea()}
             </g>

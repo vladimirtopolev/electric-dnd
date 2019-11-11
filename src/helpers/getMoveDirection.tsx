@@ -2,6 +2,7 @@ import {Offset} from '../types';
 import {KeyboardEvent} from 'react';
 
 export default (e: KeyboardEvent<HTMLDivElement>): Offset => {
+    console.log(e.key);
     switch (e.key) {
         case 'ArrowUp': {
             return {dx: 0, dy: -1};

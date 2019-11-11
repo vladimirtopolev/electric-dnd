@@ -5,6 +5,8 @@ export default {
     x: 0,
     y: 0,
     rotate: 0,
+    originX: 0,
+    originY: 0,
     id: new Date().getUTCMilliseconds().toString(),
     getConnectors: () => {
         return [{
