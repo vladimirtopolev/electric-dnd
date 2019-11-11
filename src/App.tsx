@@ -68,7 +68,7 @@ function App() {
         } else {
             // it means client probably tries to modify existed connection
             const selectedConnector = selectedConnectors[0];
-            if (isPointBelongConnector({element, connectorPointIndex}, selectedConnector)){
+            if (isPointBelongConnector({element, connectorPointIndex}, selectedConnector)) {
                 const fixedConnectorPoint = selectedConnector.first.element.id === element.id
                     ? selectedConnector.second : selectedConnector.first;
                 const updatedElementForFixedConnectorPoint = elements.find(el => el.id === fixedConnectorPoint.element.id);
@@ -87,7 +87,7 @@ function App() {
         setUnderElementConnectorPoint({element, connectorPointIndex});
     };
 
-    const onClickElementHandler = (element: Element) => {
+    const clickElementHandler = (element: Element) => {
         setSelectedElements([element]);
     };
 
@@ -170,20 +170,21 @@ function App() {
                                          onConnectorClick={onClickConnector}/>;
                 })}
                 {elements.map((el, i) => {
-                    const elementInstance = new SvgElement(
-                        el, i,
-                        doubleClickElementHandler,
-                        mouseDownElementHandler,
-                        contextMenuElementHandler,
-                        mouseDownConnectorHandler,
-                        mouseMoveConnectorHandler,
-                        onClickElementHandler,
-                        isActiveConnectorPoint);
-                    return elementInstance.render(!!selectedElements.find(selEl => selEl.id === el.id));
+                    return <SvgElement
+                        key={i}
+                        element={el}
+                        doubleClickElementHandler={doubleClickElementHandler}
+                        mouseDownElementHandler={mouseDownElementHandler}
+                        contextMenuElementHandler={contextMenuElementHandler}
+                        mouseDownConnectorHandler={mouseDownConnectorHandler}
+                        mouseMoveConnectorHandler={mouseMoveConnectorHandler}
+                        clickElementHandler={clickElementHandler}
+                        isActiveConnectorPoint={isActiveConnectorPoint}
+                        isActive={!!selectedElements.find(selEl => selEl.id === el.id)}
+                    />
                 })}
-                {firstPointOfSelectingArea
-                && <SelectinArea start={firstPointOfSelectingArea}
-                                 end={currentMousePosition}/>}
+                {firstPointOfSelectingArea && <SelectinArea start={firstPointOfSelectingArea}
+                                                            end={currentMousePosition}/>}
                 <SvgDynamicConnector currentMousePosition={currentMousePosition}
                                      firstPointConnector={firstChosenElementConnectorPoint}/>
             </svg>
