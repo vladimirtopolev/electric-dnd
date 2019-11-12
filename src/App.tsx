@@ -1,5 +1,5 @@
-import React, {useState, MouseEvent, KeyboardEvent, WheelEvent} from 'react';
-import {ConnectorPoint, Point, Element, Connector, DraggedElement, ElementGeometry} from './types';
+import React, {useState, MouseEvent, KeyboardEvent, WheelEvent, useReducer, useEffect} from 'react';
+import {ConnectorPoint, Point, Element, Connector, DraggedElement, ElementGeometry, CartesianVector} from './types';
 import GeneratorElement from './electricComponents/Generator';
 
 import SvgElement from './elements/SvgElement';
@@ -8,232 +8,200 @@ import SvgConnector from './elements/SvgConnector';
 import EditElementModal from './elements/EditElementModal';
 import ContextMenu from './elements/ContextMenu';
 import SelectinArea from './elements/SelectingArea';
-import useContextMenuElement from './helpers/useContextMenuElement';
-import getMoveDirection from './helpers/getMoveDirection';
-import isDeleteBtn from './helpers/isDeleteBtn';
-import {isArray, get} from 'lodash';
-import isPointBelongConnector from "./helpers/isPointBelongConnector";
+
+interface DraggableElement {
+    element: Element,
+    baseOffset: CartesianVector
+}
+
+interface WorkspaceState {
+    type: WorkspaceStateEnum,
+    draggableElements: DraggableElement[],
+    selectedElements: Element[],
+    currentMousePosition: Point
+}
+
+enum WorkspaceStateEnum {
+    NO_ACTION = 'NO_ACTIOM',
+    DRAGGING_ELEMENT = 'DRAGGING_ELEMENT',
+    DRAG_ELEMENT = 'DRAG_ELEMENT',
+    DROP_ELEMENT = 'DROP_ELEMENT'
+}
+
+interface BaseAction {
+    type: WorkspaceStateEnum,
+    element: Element | null,
+    currentMousePosition: Point
+}
 
 function App() {
     const [elements, setElements] = useState<Element[]>([]);
-    const [elementGeometry, setElementGeometry] = useState<ElementGeometry[]>([]);
-    const [connectors, setConnectors] = useState<Connector[]>([]);
-    const deleteElements = (deletingElements: Element | Element[]) => {
-        const deletedElements: Element[] = isArray(deletingElements) ? deletingElements : [deletingElements];
-        setElements(elements.reduce((memo, element) => {
-            const isDeletingElement = deletedElements.find(el => el.id === element.id);
-            return isDeletingElement ? memo : [...memo, element];
-        }, [] as Element[]));
-        setConnectors(connectors.reduce((memo, connector) => {
-            const isFirstElementDeleting = deletedElements.find(el => el.id === connector.first.element.id);
-            const isSecondElementDeleting = deletedElements.find(el => el.id === connector.second.element.id);
-            return (isFirstElementDeleting || isSecondElementDeleting) ? memo : [...memo, connector]
-        }, [] as Connector[]))
+
+
+    const workspaceReducer = (state: WorkspaceState, action: BaseAction): WorkspaceState => {
+        const {type, currentMousePosition} = action;
+
+        switch (action.type) {
+            case WorkspaceStateEnum.DRAG_ELEMENT: {
+                console.log('DRAG_ELEMENT');
+                const element = action.element as Element;
+                return {
+                    type,
+                    draggableElements: [{
+                        element,
+                        baseOffset: {dx: element.x - currentMousePosition.x, dy: element.y - currentMousePosition.y}
+                    }],
+                    selectedElements: [element],
+                    currentMousePosition
+                };
+            }
+            case WorkspaceStateEnum.DRAGGING_ELEMENT: {
+                console.log('DRAGGING_ELEMENT');
+                return {...state, type, currentMousePosition};
+            }
+            case WorkspaceStateEnum.DROP_ELEMENT: {
+                console.log('DROP_ELEMENT');
+                return {...state, type, currentMousePosition, draggableElements: []};
+            }
+            case WorkspaceStateEnum.NO_ACTION: {
+                console.log('NO_ACTION');
+                return {...state, type, selectedElements: [], draggableElements: []};
+            }
+            default:
+                return state;
+        }
     };
+    const [workspaceState, dispatch] = useReducer(workspaceReducer, {
+        type: WorkspaceStateEnum.NO_ACTION,
+        selectedElements: [],
+        currentMousePosition: {x: 0, y: 0},
+        draggableElements: []
+    });
 
-    const [doubleClickedElement, setDoubleClickedElement] = useState<Element>();
-    const [draggedElement, setDraggedElement] = useState<DraggedElement>();
-    const {contextMenuElement, setContextMenuElement} = useContextMenuElement();
-    const [underElementConnectorPoint, setUnderElementConnectorPoint] = useState<ConnectorPoint>();
-    const [firstChosenElementConnectorPoint, setFirstChosenElementConnectorPoint] = useState<ConnectorPoint>();
-    const [currentMousePosition, setCurrentMousePosition] = useState<Point>();
-    const [selectedElements, setSelectedElements] = useState<Element[]>([]);
-    const [selectedConnectors, setSelectedConnectors] = useState<Connector[]>([]);
+    console.log(elements);
 
-    const closeContextMenuElement = () => {
-        setContextMenuElement(undefined);
-        setFirstPointOfSelectingArea(undefined);
-    };
-
-    const [firstPointOfSelectingArea, setFirstPointOfSelectingArea] = useState<Point>();
+    useEffect(() => {
+        if (workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENT) {
+            const {currentMousePosition, draggableElements} = workspaceState;
+            setElements(elements => {
+                return elements.map(el => {
+                    return el.id !== draggableElements[0].element.id
+                        ? el
+                        : {
+                            ...el,
+                            x: currentMousePosition.x + draggableElements[0].baseOffset.dx,
+                            y: currentMousePosition.y + draggableElements[0].baseOffset.dy
+                        };
+                });
+            });
+        }
+    }, [workspaceState]);
 
     const doubleClickElementHandler = (el: Element, e: MouseEvent) => {
-        e.preventDefault();
-        setDoubleClickedElement(el)
     };
     const mouseDownElementHandler = (element: Element, e: MouseEvent) => {
         e.stopPropagation();
-        setDraggedElement({element, offset: {x: element.x - e.clientX, y: element.y - e.clientY}});
-        setSelectedElements([element]);
+        if (workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENT) {
+            dispatch({
+                type: WorkspaceStateEnum.NO_ACTION,
+                currentMousePosition: {x: e.clientX, y: e.clientY},
+                element: null
+            });
+        } else {
+            dispatch({
+                type: WorkspaceStateEnum.DRAG_ELEMENT,
+                element,
+                currentMousePosition: {x: e.clientX, y: e.clientY}
+            });
+        }
     };
     const contextMenuElementHandler = (element: Element, e: MouseEvent) => {
-        e.preventDefault();
-        setContextMenuElement({element, mousePosition: {x: e.clientX, y: e.clientY}});
     };
     const mouseDownConnectorHandler = (element: Element, connectorPointIndex: number, e: MouseEvent) => {
-        e.stopPropagation();
-        if (selectedConnectors.length === 0) {
-            // it means client tries to create new connection
-            setFirstChosenElementConnectorPoint({element, connectorPointIndex});
-            setCurrentMousePosition({x: e.clientX, y: e.clientY});
-        } else {
-            // it means client probably tries to modify existed connection
-            const selectedConnector = selectedConnectors[0];
-            if (isPointBelongConnector({element, connectorPointIndex}, selectedConnector)) {
-                const fixedConnectorPoint = selectedConnector.first.element.id === element.id
-                    ? selectedConnector.second : selectedConnector.first;
-                const updatedElementForFixedConnectorPoint = elements.find(el => el.id === fixedConnectorPoint.element.id);
-                setConnectors(connectors.filter(con => con.id !== selectedConnector.id));
-                setCurrentMousePosition({x: e.clientX, y: e.clientY});
-                setSelectedConnectors([]);
-                setFirstChosenElementConnectorPoint(updatedElementForFixedConnectorPoint
-                    ? {...fixedConnectorPoint, element: updatedElementForFixedConnectorPoint}
-                    : fixedConnectorPoint);
-            }
-        }
-        setDraggedElement(undefined);
     };
     const mouseMoveConnectorHandler = (element: Element, connectorPointIndex: number, e: MouseEvent) => {
-        e.stopPropagation();
-        setUnderElementConnectorPoint({element, connectorPointIndex});
     };
 
     const clickElementHandler = (element: Element) => {
-        setSelectedElements([element]);
     };
 
     const isActiveConnectorPoint = (element: Element, connectorPointIndex: number) => {
-        if (!underElementConnectorPoint) {
-            return false;
-        }
-        return element.id === underElementConnectorPoint.element.id
-            && connectorPointIndex === underElementConnectorPoint.connectorPointIndex;
+        return true;
     };
 
     const clickConnectorHandler = (connector: Connector) => {
-        setSelectedConnectors([connector]);
     };
 
     const elementChangeGeometryHandler = (element: Element, position: DOMRect) => {
-        setElementGeometry(elGeometry => {
-            const isExistElementGeometry = elGeometry.find(g => g.element.id === element.id);
-            return isExistElementGeometry
-                ? elGeometry.map(g => g.element.id === element.id ? {element, position} : g)
-                : elGeometry.concat({element, position});
-        });
     };
 
+    console.log('SELECTED ---->', workspaceState.selectedElements);
 
     return (
         <div style={{padding: 0, margin: 0, position: 'relative', outline: 'none'}}
              tabIndex={0}
              onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
-                 const baseShift = 2;
-                 const offset = getMoveDirection(e);
-                 const deleteElement = isDeleteBtn(e);
-                 if (deleteElement) {
-                     deleteElements(selectedElements);
-                     return;
-                 }
-                 const newElements = elements.reduce((memo, el) => {
-                     const isSelectedElement = selectedElements.find(selEl => selEl.id === el.id);
-                     return isSelectedElement
-                         ? [...memo, {...el, x: el.x + offset.dx * baseShift, y: el.y + offset.dy * baseShift}]
-                         : [...memo, el];
-                 }, [] as Element[]);
-                 setElements(newElements);
              }}>
             <svg width="100%"
                  height={500}
                  onWheel={(e: WheelEvent<SVGSVGElement>) => {
-                     console.log(e)
                  }}
                  onMouseDown={(e: MouseEvent) => {
-                     e.persist();
-                     console.log(e);
-                     closeContextMenuElement();
-                     setSelectedElements([]);
-                     if (e.button !== 2) {
-                         setFirstPointOfSelectingArea({x: e.clientX, y: e.clientY});
-                     }
-                     setSelectedConnectors([]);
                  }}
                  onMouseMove={(e: MouseEvent) => {
-                     if (draggedElement) {
-                         const x = e.clientX + draggedElement.offset.x;
-                         const y = e.clientY + draggedElement.offset.y;
-                         setElements(elements.map(el => el.id === draggedElement.element.id
-                             ? {...el, x, y}
-                             : el));
+                     if (workspaceState.type === WorkspaceStateEnum.DRAG_ELEMENT
+                         || workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENT) {
+                         dispatch({
+                             type: WorkspaceStateEnum.DRAGGING_ELEMENT,
+                             element: null,
+                             currentMousePosition: {x: e.clientX, y: e.clientY}
+                         });
+
                      }
-                     setCurrentMousePosition({x: e.clientX, y: e.clientY});
-                     setUnderElementConnectorPoint(undefined);
                  }}
-                 onMouseUp={() => {
-                     if (firstChosenElementConnectorPoint && underElementConnectorPoint
-                         && firstChosenElementConnectorPoint.element.id !== underElementConnectorPoint.element.id) {
-                         setConnectors([...connectors, {
-                             id: (new Date()).getUTCMilliseconds().toString(),
-                             first: firstChosenElementConnectorPoint,
-                             second: underElementConnectorPoint
-                         }]);
+                 onMouseUp={(e: MouseEvent) => {
+                     if (workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENT) {
+                         dispatch({
+                             type: WorkspaceStateEnum.DROP_ELEMENT,
+                             element: null,
+                             currentMousePosition: {x: e.clientX, y: e.clientY}
+                         });
                      }
-                     // calculate which elements were chosen within selected area
-                     const selectedElements = elementGeometry.filter(elGeom => {
-                         const x1Outer = Math.min(get(firstPointOfSelectingArea,'x', 0), get(currentMousePosition,'x', 0));
-                         const x2Outer = Math.max(get(firstPointOfSelectingArea,'x', 0), get(currentMousePosition,'x', 0));
-                         const y1Outer = Math.min(get(firstPointOfSelectingArea,'y', 0), get(currentMousePosition,'y', 0));
-                         const y2Outer = Math.max(get(firstPointOfSelectingArea,'y', 0), get(currentMousePosition,'y', 0));
-
-                         const x1Inside = elGeom.position.x;
-                         const y1Inside = elGeom.position.y;
-                         const x2Inside = elGeom.position.x + elGeom.position.width;
-                         const y2Inside = elGeom.position.y + elGeom.position.height;
-
-                         return (x1Outer < x1Inside && x2Inside < x2Outer && y1Outer < y1Inside && y2Inside < y2Outer);
-                     }).map(elGe => elGe.element);
-                     setSelectedElements(selectedElements);
-                     setDraggedElement(undefined);
-                     setFirstChosenElementConnectorPoint(undefined);
-                     setFirstPointOfSelectingArea(undefined);
+                     if (workspaceState.type === WorkspaceStateEnum.DROP_ELEMENT) {
+                         dispatch({
+                             type: WorkspaceStateEnum.NO_ACTION,
+                             element: null,
+                             currentMousePosition: {x: e.clientX, y: e.clientY}
+                         });
+                     }
                  }}
-                     onContextMenu={(e: MouseEvent) => {
-                     e.preventDefault();
+                 onContextMenu={(e: MouseEvent) => {
                  }}
-                     >
-                 {connectors.map((connection, i) => {
-                     return <SvgConnector key={i}
-                     connection={connection}
-                     elements={elements}
-                     selectedConnectors={selectedConnectors}
-                     onConnectorClick={clickConnectorHandler}/>;
-                 })}
-                 {elements.map((el, i) => {
-                     return <SvgElement
-                     key={i}
-                     element={el}
-                     doubleClickElementHandler={doubleClickElementHandler}
-                     mouseDownElementHandler={mouseDownElementHandler}
-                     contextMenuElementHandler={contextMenuElementHandler}
-                     mouseDownConnectorHandler={mouseDownConnectorHandler}
-                     mouseMoveConnectorHandler={mouseMoveConnectorHandler}
-                     clickElementHandler={clickElementHandler}
-                     isActiveConnectorPoint={isActiveConnectorPoint}
-                     onElementChangeGeometry={elementChangeGeometryHandler}
-                     isActive={!!selectedElements.find(selEl => selEl.id === el.id)}
-                     />
-                 })}
-                 {firstPointOfSelectingArea && <SelectinArea start={firstPointOfSelectingArea}
-                     end={currentMousePosition}/>}
-                     <SvgDynamicConnector currentMousePosition={currentMousePosition}
-                     firstPointConnector={firstChosenElementConnectorPoint}/>
-                     </svg>
-                     <div>
-                     <button onClick={() => {
-                     setElements([...elements, {...GeneratorElement, id: new Date().getUTCMilliseconds().toString()}]);
-                 }}>G
-                     </button>
-                     </div>
-                     <EditElementModal doubleClickedElement={doubleClickedElement}
-                     setDoubleClickedElement={setDoubleClickedElement}/>
-                     <ContextMenu contextMenuElement={contextMenuElement}
-                     elements={elements}
-                     deleteElement={deleteElements}
-                     setElements={setElements}
-                     closeContextMenu={closeContextMenuElement}/>
-                     </div>
-                     );
-                 }
+            >
+                {elements.map((element, i) => {
+                    return <SvgElement
+                        key={i}
+                        element={element}
+                        doubleClickElementHandler={doubleClickElementHandler}
+                        mouseDownElementHandler={mouseDownElementHandler}
+                        contextMenuElementHandler={contextMenuElementHandler}
+                        mouseDownConnectorHandler={mouseDownConnectorHandler}
+                        mouseMoveConnectorHandler={mouseMoveConnectorHandler}
+                        clickElementHandler={clickElementHandler}
+                        isActiveConnectorPoint={isActiveConnectorPoint}
+                        onElementChangeGeometry={elementChangeGeometryHandler}
+                        isActive={!!elements.find(el => workspaceState.selectedElements.map(e => e.id).includes(element.id))}
+                    />;
+                })}
+            </svg>
+            <div>
+                <button onClick={() => {
+                    setElements([...elements, {...GeneratorElement, id: new Date().getUTCMilliseconds().toString()}]);
+                }}>G
+                </button>
+            </div>
+        </div>
+    );
+}
 
-                 export default App
-            ;
+export default App;
