@@ -3,16 +3,10 @@ export interface Point {
     y: number
 }
 
-export interface Element {
-    id: string,
-    originX: number,
-    originY: number,
-    x: number,
-    y: number,
-    rotate: number,
-    getConnectors: () => Point[],
-    render: () => JSX.Element,
-    renderBorderArea: () => JSX.Element
+
+export interface ElementGeometry {
+    element: Element,
+    position: DOMRect
 }
 
 export interface ConnectorPoint {
@@ -49,4 +43,17 @@ export interface CartesianVector{
 export interface PolarVector {
     r: number,
     deg: number
+}
+
+
+export interface Element {
+    id: string,
+    originX: number,
+    originY: number,
+    x: number,
+    y: number,
+    rotate: number,
+    getBorders: () => CartesianVector,
+    getConnectors: () => Point[],
+    render: () => JSX.Element
 }

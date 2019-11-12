@@ -1,5 +1,11 @@
 import {Element} from '../types';
-import React, {MouseEvent, useRef, useEffect} from 'react';
+import React, {
+    MouseEvent,
+    useRef,
+    useEffect,
+    Fragment,
+    useState, useLayoutEffect,
+} from 'react';
 import isClickedLeftMouseBtn from '../helpers/isClickedLeftMouseBtn';
 
 interface SvgElementProps {
@@ -11,13 +17,14 @@ interface SvgElementProps {
     mouseMoveConnectorHandler: (el: Element, connectorPointIndex: number, event: MouseEvent) => void,
     clickElementHandler: (el: Element, event?: MouseEvent) => void,
     isActiveConnectorPoint: (el: Element, connectorIndex: number) => boolean,
+    onElementChangeGeometry: (el: Element, position: DOMRect) => void,
     isActive: boolean
 }
-
 
 export default ({
                     element,
                     doubleClickElementHandler,
+                    onElementChangeGeometry,
                     mouseDownElementHandler,
                     contextMenuElementHandler,
                     mouseDownConnectorHandler,
@@ -28,10 +35,18 @@ export default ({
                 }: SvgElementProps) => {
 
     const groupRef = useRef<SVGGElement>(null);
+    const [groupBorder, setGroupBorder] = useState<DOMRect>(new DOMRect(0, 0, 0, 0));
+
     useEffect(() => {
-        console.log(groupRef.current && groupRef.current.getBoundingClientRect())
-       ;
-    });
+        if (groupRef.current) {
+            setGroupBorder(groupRef.current.getBoundingClientRect());
+            onElementChangeGeometry(element, groupRef.current.getBoundingClientRect());
+        }
+    }, [
+        element.x,
+        element.y,
+        element.rotate
+    ]);
 
     return (
         <g ref={groupRef}
@@ -44,11 +59,10 @@ export default ({
             {element.render()}
             {element.getConnectors().map((point, i) => {
                 return (
-                    <>
+                    <Fragment key={i}>
                         <circle cx={point.x}
                                 cy={point.y}
                                 r={10}
-                                key={i}
                                 fill={'black'}
                                 fillOpacity={0}
                                 onMouseDown={(e: MouseEvent) => mouseDownConnectorHandler(element, i, e)}
@@ -56,15 +70,23 @@ export default ({
                         <circle cx={point.x}
                                 cy={point.y}
                                 r={5}
-                                key={i}
                                 fill={'red'}
                                 fillOpacity={isActiveConnectorPoint(element, i) ? 1 : 0}
                                 onMouseDown={(e: MouseEvent) => mouseDownConnectorHandler(element, i, e)}
                                 onMouseMove={(e: MouseEvent) => mouseMoveConnectorHandler(element, i, e)}/>
-                    </>
+                    </Fragment>
                 );
             })}
-            {isActive && element.renderBorderArea()}
+            {isActive && <rect x={0}
+                               y={0}
+                               width={element.getBorders().dx}
+                               height={element.getBorders().dy}
+                               fill="none"
+                               stroke="red"
+                               strokeDasharray={4}
+                               strokeWidth={1}
+            />}
         </g>
     );
-}
+};
+

@@ -2,9 +2,9 @@ import React from 'react';
 import {Element} from '../types'
 
 export default {
-    x: 0,
-    y: 0,
-    rotate: 0,
+    x: 20,
+    y: 20,
+    rotate: 90,
     originX: 0,
     originY: 0,
     id: new Date().getUTCMilliseconds().toString(),
@@ -14,8 +14,8 @@ export default {
             y: 0
         }];
     },
-    renderBorderArea: () => {
-        return <rect x={-2} y={-2} width={44} height={54} strokeDasharray={4} strokeWidth={2} stroke="red" fill="none"/>
+    getBorders: () => {
+        return {dx: 40, dy: 50}
     },
     render: () => (
         <>

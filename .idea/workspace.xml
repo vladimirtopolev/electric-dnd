@@ -3,7 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="1826023d-aad5-49f9-bcf7-48bcc8f46ef5" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/electricComponents/Generator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/electricComponents/Generator.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/SvgElement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgElement.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/index.tsx" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -27,7 +29,7 @@
     <property name="JavaScriptWeakerCompletionTypeGuess" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../IX/core-data-aggregator" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -104,7 +106,10 @@
       <workItem from="1573383928756" duration="30052000" />
       <workItem from="1573461208893" duration="6462000" />
       <workItem from="1573474252013" duration="4610000" />
-      <workItem from="1573481389140" duration="3022000" />
+      <workItem from="1573481389140" duration="3902000" />
+      <workItem from="1573539992156" duration="986000" />
+      <workItem from="1573542009351" duration="103000" />
+      <workItem from="1573556966879" duration="12944000" />
     </task>
     <servers />
   </component>
