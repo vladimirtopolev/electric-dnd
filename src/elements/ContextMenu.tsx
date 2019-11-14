@@ -1,10 +1,11 @@
 import React from 'react';
-import {ContextMenuElement, Element} from '../types';
+import {ContextMenuElement, Element, Point} from '../types';
 import './ContextMenu.styles.css';
 
 
-export default ({contextMenuElement, setElements, elements, closeContextMenu, deleteElement}: {
-    contextMenuElement: ContextMenuElement | undefined,
+export default ({contextMenuElement, contextPosition, setElements, elements, closeContextMenu, deleteElement}: {
+    contextMenuElement: Element | undefined | null,
+    contextPosition: Point,
     deleteElement: (element: Element) => void,
     elements: Element[],
     setElements: (e: Element[]) => void,
@@ -15,11 +16,10 @@ export default ({contextMenuElement, setElements, elements, closeContextMenu, de
         return null;
     }
 
-    const {element, mousePosition: {x, y}} = contextMenuElement;
 
     const changeElementRotation = (deltaDeg: number) => {
         setElements(elements.map(el => {
-            return el.id === element.id ? {...el, rotate: el.rotate + deltaDeg} : el;
+            return el.id === contextMenuElement.id ? {...el, rotate: el.rotate + deltaDeg} : el;
         }));
         closeContextMenu();
     };
@@ -27,8 +27,8 @@ export default ({contextMenuElement, setElements, elements, closeContextMenu, de
     return (
         <ul className="ContextMenu"
             style={{
-                top: y,
-                left: x
+                top: contextPosition.y,
+                left: contextPosition.x
             }}>
             <li>
                 <button className="ContextMenu__btn"
@@ -43,7 +43,7 @@ export default ({contextMenuElement, setElements, elements, closeContextMenu, de
             <li>
                 <button className="ContextMenu__btn"
                         onClick={() => {
-                            deleteElement(element);
+                            deleteElement(contextMenuElement);
                             closeContextMenu();
                         }}>Удалить
                 </button>

@@ -2,7 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1826023d-aad5-49f9-bcf7-48bcc8f46ef5" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/helpers/getElementsInsideSelectedArea.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/workspaceReducer.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/t.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/ContextMenu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/ContextMenu.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/SvgElement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgElement.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/helpers/vectors.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/helpers/vectors.tsx" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -11,6 +17,11 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
@@ -107,6 +118,8 @@
       <workItem from="1573539992156" duration="986000" />
       <workItem from="1573542009351" duration="103000" />
       <workItem from="1573556966879" duration="12944000" />
+      <workItem from="1573641717492" duration="3898000" />
+      <workItem from="1573648243066" duration="9638000" />
     </task>
     <servers />
   </component>

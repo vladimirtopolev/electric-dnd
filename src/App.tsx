@@ -1,96 +1,36 @@
-import React, {useState, MouseEvent, KeyboardEvent, WheelEvent, useReducer, useEffect} from 'react';
-import {ConnectorPoint, Point, Element, Connector, DraggedElement, ElementGeometry, CartesianVector} from './types';
+import React, {KeyboardEvent, MouseEvent, useEffect, useReducer, useState, WheelEvent} from 'react';
+import {Connector, Element} from './types';
 import GeneratorElement from './electricComponents/Generator';
 
-import SvgElement from './elements/SvgElement';
-import SvgDynamicConnector from './elements/SvgDynamicConnector';
-import SvgConnector from './elements/SvgConnector';
-import EditElementModal from './elements/EditElementModal';
 import ContextMenu from './elements/ContextMenu';
-import SelectinArea from './elements/SelectingArea';
+import workspaceReducer, {
+    createDragElementAction,
+    createDropElementAction,
+    createNoUserInteractionAction,
+    createOpenContextMenuAction,
+    initWorkspaceState,
+    WorkspaceStateEnum
+} from './workspaceReducer';
 
-interface DraggableElement {
-    element: Element,
-    baseOffset: CartesianVector
-}
-
-interface WorkspaceState {
-    type: WorkspaceStateEnum,
-    draggableElements: DraggableElement[],
-    selectedElements: Element[],
-    currentMousePosition: Point
-}
-
-enum WorkspaceStateEnum {
-    NO_ACTION = 'NO_ACTIOM',
-    DRAGGING_ELEMENT = 'DRAGGING_ELEMENT',
-    DRAG_ELEMENT = 'DRAG_ELEMENT',
-    DROP_ELEMENT = 'DROP_ELEMENT'
-}
-
-interface BaseAction {
-    type: WorkspaceStateEnum,
-    element: Element | null,
-    currentMousePosition: Point
-}
+import SvgElement from './elements/SvgElement';
+import SelectingArea from './elements/SelectingArea';
+import getElementsInsideSelectedArea from './helpers/getElementsInsideSelectedArea';
 
 function App() {
     const [elements, setElements] = useState<Element[]>([]);
-
-
-    const workspaceReducer = (state: WorkspaceState, action: BaseAction): WorkspaceState => {
-        const {type, currentMousePosition} = action;
-
-        switch (action.type) {
-            case WorkspaceStateEnum.DRAG_ELEMENT: {
-                console.log('DRAG_ELEMENT');
-                const element = action.element as Element;
-                return {
-                    type,
-                    draggableElements: [{
-                        element,
-                        baseOffset: {dx: element.x - currentMousePosition.x, dy: element.y - currentMousePosition.y}
-                    }],
-                    selectedElements: [element],
-                    currentMousePosition
-                };
-            }
-            case WorkspaceStateEnum.DRAGGING_ELEMENT: {
-                console.log('DRAGGING_ELEMENT');
-                return {...state, type, currentMousePosition};
-            }
-            case WorkspaceStateEnum.DROP_ELEMENT: {
-                console.log('DROP_ELEMENT');
-                return {...state, type, currentMousePosition, draggableElements: []};
-            }
-            case WorkspaceStateEnum.NO_ACTION: {
-                console.log('NO_ACTION');
-                return {...state, type, selectedElements: [], draggableElements: []};
-            }
-            default:
-                return state;
-        }
-    };
-    const [workspaceState, dispatch] = useReducer(workspaceReducer, {
-        type: WorkspaceStateEnum.NO_ACTION,
-        selectedElements: [],
-        currentMousePosition: {x: 0, y: 0},
-        draggableElements: []
-    });
-
-    console.log(elements);
+    const [workspaceState, dispatch] = useReducer(workspaceReducer, initWorkspaceState);
 
     useEffect(() => {
         if (workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENT) {
-            const {currentMousePosition, draggableElements} = workspaceState;
+            const {previousPosition, currentPosition, draggableElements} = workspaceState;
             setElements(elements => {
                 return elements.map(el => {
-                    return el.id !== draggableElements[0].element.id
+                    return el.id !== draggableElements[0].id
                         ? el
                         : {
                             ...el,
-                            x: currentMousePosition.x + draggableElements[0].baseOffset.dx,
-                            y: currentMousePosition.y + draggableElements[0].baseOffset.dy
+                            x: el.x + (currentPosition.x - previousPosition.x),
+                            y: el.y + (currentPosition.y - previousPosition.y)
                         };
                 });
             });
@@ -99,43 +39,57 @@ function App() {
 
     const doubleClickElementHandler = (el: Element, e: MouseEvent) => {
     };
+
+
     const mouseDownElementHandler = (element: Element, e: MouseEvent) => {
         e.stopPropagation();
         if (workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENT) {
-            dispatch({
-                type: WorkspaceStateEnum.NO_ACTION,
-                currentMousePosition: {x: e.clientX, y: e.clientY},
-                element: null
-            });
+            dispatch(createDropElementAction(e));
         } else {
-            dispatch({
-                type: WorkspaceStateEnum.DRAG_ELEMENT,
-                element,
-                currentMousePosition: {x: e.clientX, y: e.clientY}
-            });
+            dispatch(createDragElementAction(element, e));
         }
     };
+
+    const mouseUpElementHandler = (element: Element, e: MouseEvent) => {
+        e.stopPropagation();
+        dispatch(createDropElementAction(e));
+    };
+
     const contextMenuElementHandler = (element: Element, e: MouseEvent) => {
+        e.preventDefault();
+        dispatch(createOpenContextMenuAction(element, e));
     };
+
     const mouseDownConnectorHandler = (element: Element, connectorPointIndex: number, e: MouseEvent) => {
+
     };
+
     const mouseMoveConnectorHandler = (element: Element, connectorPointIndex: number, e: MouseEvent) => {
+        e.stopPropagation();
+        dispatch({
+            type: WorkspaceStateEnum.ACTIVATE_CONNECTOR_POINT,
+            element,
+            connectorPointIndex
+        });
     };
 
     const clickElementHandler = (element: Element) => {
     };
 
     const isActiveConnectorPoint = (element: Element, connectorPointIndex: number) => {
-        return true;
+        // TODO: probably enough have only one connector point insted of array of them
+        // TODO: since there may be not case in which we need to keep 2 connector points
+        if (workspaceState.activeConnectorPoints.length === 0) {
+            return false;
+        }
+        const connectorPoint = workspaceState.activeConnectorPoints[0];
+        return element.id === connectorPoint.element.id
+            && connectorPointIndex === connectorPoint.connectorPointIndex;
     };
 
     const clickConnectorHandler = (connector: Connector) => {
     };
 
-    const elementChangeGeometryHandler = (element: Element, position: DOMRect) => {
-    };
-
-    console.log('SELECTED ---->', workspaceState.selectedElements);
 
     return (
         <div style={{padding: 0, margin: 0, position: 'relative', outline: 'none'}}
@@ -147,53 +101,80 @@ function App() {
                  onWheel={(e: WheelEvent<SVGSVGElement>) => {
                  }}
                  onMouseDown={(e: MouseEvent) => {
+                     dispatch({type: WorkspaceStateEnum.CLOSE_CONTEXT_MENU});
+                     dispatch({
+                         type: WorkspaceStateEnum.START_DRAW_SELECTED_AREA,
+                         currentMousePosition: {x: e.clientX, y: e.clientY}
+                     });
                  }}
                  onMouseMove={(e: MouseEvent) => {
                      if (workspaceState.type === WorkspaceStateEnum.DRAG_ELEMENT
                          || workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENT) {
                          dispatch({
                              type: WorkspaceStateEnum.DRAGGING_ELEMENT,
-                             element: null,
                              currentMousePosition: {x: e.clientX, y: e.clientY}
                          });
-
+                     }
+                     dispatch({type: WorkspaceStateEnum.REMOVE_ACTIVATED_CONNECTOR_POINT});
+                     if (workspaceState.type === WorkspaceStateEnum.START_DRAW_SELECTED_AREA
+                         || workspaceState.type === WorkspaceStateEnum.DRAWING_SELECTED_AREA) {
+                         dispatch({
+                             type: WorkspaceStateEnum.DRAWING_SELECTED_AREA,
+                             currentMousePosition: {x: e.clientX, y: e.clientY}
+                         });
                      }
                  }}
                  onMouseUp={(e: MouseEvent) => {
                      if (workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENT) {
-                         dispatch({
-                             type: WorkspaceStateEnum.DROP_ELEMENT,
-                             element: null,
-                             currentMousePosition: {x: e.clientX, y: e.clientY}
-                         });
+                         dispatch(createDropElementAction(e));
                      }
                      if (workspaceState.type === WorkspaceStateEnum.DROP_ELEMENT) {
+                         dispatch(createNoUserInteractionAction());
+                     }
+                     if (workspaceState.type === WorkspaceStateEnum.DRAWING_SELECTED_AREA
+                         || workspaceState.type === WorkspaceStateEnum.START_DRAW_SELECTED_AREA) {
+                         dispatch(createNoUserInteractionAction());
                          dispatch({
-                             type: WorkspaceStateEnum.NO_ACTION,
-                             element: null,
-                             currentMousePosition: {x: e.clientX, y: e.clientY}
+                             type: WorkspaceStateEnum.REPLACE_SELECTED_ELEMENTS, selectedElements:
+                                 getElementsInsideSelectedArea(elements, {
+                                     start: workspaceState.previousPosition,
+                                     end: workspaceState.currentPosition
+                                 })
                          });
+                     }
+                     if (workspaceState.type === WorkspaceStateEnum.NO_USER_INTERACTION) {
+                         dispatch(createNoUserInteractionAction());
                      }
                  }}
                  onContextMenu={(e: MouseEvent) => {
                  }}
             >
+                {workspaceState.type === WorkspaceStateEnum.DRAWING_SELECTED_AREA
+                && <SelectingArea start={workspaceState.previousPosition}
+                                  end={workspaceState.currentPosition}/>}
                 {elements.map((element, i) => {
                     return <SvgElement
                         key={i}
                         element={element}
                         doubleClickElementHandler={doubleClickElementHandler}
                         mouseDownElementHandler={mouseDownElementHandler}
+                        mouseUpElementHandler={mouseUpElementHandler}
                         contextMenuElementHandler={contextMenuElementHandler}
                         mouseDownConnectorHandler={mouseDownConnectorHandler}
                         mouseMoveConnectorHandler={mouseMoveConnectorHandler}
                         clickElementHandler={clickElementHandler}
                         isActiveConnectorPoint={isActiveConnectorPoint}
-                        onElementChangeGeometry={elementChangeGeometryHandler}
                         isActive={!!elements.find(el => workspaceState.selectedElements.map(e => e.id).includes(element.id))}
                     />;
                 })}
             </svg>
+            <ContextMenu contextMenuElement={workspaceState.contextMenuElement}
+                         contextPosition={workspaceState.currentPosition}
+                         elements={elements}
+                         deleteElement={() => {
+                         }}
+                         setElements={setElements}
+                         closeContextMenu={() => dispatch({type: WorkspaceStateEnum.CLOSE_CONTEXT_MENU})}/>
             <div>
                 <button onClick={() => {
                     setElements([...elements, {...GeneratorElement, id: new Date().getUTCMilliseconds().toString()}]);

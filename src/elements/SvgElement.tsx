@@ -12,22 +12,22 @@ interface SvgElementProps {
     element: Element,
     doubleClickElementHandler: (el: Element, event: MouseEvent) => void,
     mouseDownElementHandler: (el: Element, event: MouseEvent) => void,
+    mouseUpElementHandler: (el: Element, event: MouseEvent) => void,
     contextMenuElementHandler: (el: Element, event: MouseEvent) => void,
     mouseDownConnectorHandler: (el: Element, connectorPointIndex: number, event: MouseEvent) => void,
     mouseMoveConnectorHandler: (el: Element, connectorPointIndex: number, event: MouseEvent) => void,
     clickElementHandler: (el: Element, event?: MouseEvent) => void,
     isActiveConnectorPoint: (el: Element, connectorIndex: number) => boolean,
-    onElementChangeGeometry: (el: Element, position: DOMRect) => void,
     isActive: boolean
 }
 
 export default ({
                     element,
                     doubleClickElementHandler,
-                    onElementChangeGeometry,
                     mouseDownElementHandler,
                     contextMenuElementHandler,
                     mouseDownConnectorHandler,
+                    mouseUpElementHandler,
                     mouseMoveConnectorHandler,
                     clickElementHandler,
                     isActiveConnectorPoint,
@@ -40,7 +40,6 @@ export default ({
     useEffect(() => {
         if (groupRef.current) {
             setGroupBorder(groupRef.current.getBoundingClientRect());
-            onElementChangeGeometry(element, groupRef.current.getBoundingClientRect());
         }
     }, [
         element.x,
@@ -53,6 +52,7 @@ export default ({
            transform={`translate(${element.x}, ${element.y}) rotate(${element.rotate})`}
            onDoubleClick={(e: MouseEvent) => doubleClickElementHandler(element, e)}
            onMouseDown={(e: MouseEvent) => isClickedLeftMouseBtn(e) && mouseDownElementHandler(element, e)}
+           onMouseUp={(e: MouseEvent) => mouseUpElementHandler(element, e)}
            onContextMenu={(e: MouseEvent) => contextMenuElementHandler(element, e)}
            onClick={(e: MouseEvent) => clickElementHandler(element, e)}
         >
