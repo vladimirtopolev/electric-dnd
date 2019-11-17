@@ -14,7 +14,7 @@ export interface ConnectorPoint {
     connectorPointIndex: number
 }
 
-export interface Connector {
+export interface Connection {
     id: string,
     first: ConnectorPoint,
     second: ConnectorPoint

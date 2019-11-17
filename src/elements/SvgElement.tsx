@@ -15,6 +15,7 @@ interface SvgElementProps {
     mouseUpElementHandler: (el: Element, event: MouseEvent) => void,
     contextMenuElementHandler: (el: Element, event: MouseEvent) => void,
     mouseDownConnectorHandler: (el: Element, connectorPointIndex: number, event: MouseEvent) => void,
+    mouseUpConnectorHandler: (el: Element, connectorPointIndex: number, event: MouseEvent) => void,
     mouseMoveConnectorHandler: (el: Element, connectorPointIndex: number, event: MouseEvent) => void,
     clickElementHandler: (el: Element, event?: MouseEvent) => void,
     isActiveConnectorPoint: (el: Element, connectorIndex: number) => boolean,
@@ -27,6 +28,7 @@ export default ({
                     mouseDownElementHandler,
                     contextMenuElementHandler,
                     mouseDownConnectorHandler,
+                    mouseUpConnectorHandler,
                     mouseUpElementHandler,
                     mouseMoveConnectorHandler,
                     clickElementHandler,
@@ -62,17 +64,16 @@ export default ({
                     <Fragment key={i}>
                         <circle cx={point.x}
                                 cy={point.y}
+                                r={3}
+                                fill={'red'}
+                                fillOpacity={isActiveConnectorPoint(element, i) ? 1 : 0}/>
+                        <circle cx={point.x}
+                                cy={point.y}
                                 r={10}
                                 fill={'black'}
                                 fillOpacity={0}
                                 onMouseDown={(e: MouseEvent) => mouseDownConnectorHandler(element, i, e)}
-                                onMouseMove={(e: MouseEvent) => mouseMoveConnectorHandler(element, i, e)}/>
-                        <circle cx={point.x}
-                                cy={point.y}
-                                r={5}
-                                fill={'red'}
-                                fillOpacity={isActiveConnectorPoint(element, i) ? 1 : 0}
-                                onMouseDown={(e: MouseEvent) => mouseDownConnectorHandler(element, i, e)}
+                                onMouseUp={(e: MouseEvent) => mouseUpConnectorHandler(element, i, e)}
                                 onMouseMove={(e: MouseEvent) => mouseMoveConnectorHandler(element, i, e)}/>
                     </Fragment>
                 );

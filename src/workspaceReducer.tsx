@@ -1,163 +1,200 @@
-import {ConnectorPoint, Element, ElementGeometry, Point} from './types';
-import {MouseEvent} from 'react';
-
+import {Connection, ConnectorPoint, Element, Point} from './types';
+import {MouseEvent} from 'react'
 
 export interface WorkspaceState {
     type: WorkspaceStateEnum,
     contextMenuElement: Element | null | undefined,
     draggableElements: Element[],
-    activeConnectorPoints: ConnectorPoint[],
+    highlightConnectorPoints: ConnectorPoint[],
+    selectedConnectorPoint: ConnectorPoint | null | undefined,
     selectedElements: Element[],
+    selectedConnection: Connection | null | undefined,
     previousPosition: Point,
     currentPosition: Point,
 }
 
+
 export interface BaseAction {
-    type: WorkspaceStateEnum,
-    element?: Element,
+    type: WorkspaceActionEnum,
+    elements?: Element[],
     connectorPointIndex?: number,
     currentMousePosition?: Point,
-    selectedElements?: Element[]
+    selectedElements?: Element[],
+    selectedConnection?: Connection
+}
+
+export enum WorkspaceActionEnum {
+    START_DRAG_ELEMENT = 'START_DRAG_ELEMENT',
+    START_DRAG_ELEMENTS = 'START_DRAG_ELEMENTS',
+    DRAG_ELEMENTS = 'DRAG_ELEMENTS',
+    DROP_ELEMENTS = 'DROP_ELEMENTS',
+    CHANGE_CURRENT_MOUSE_POSITION = 'CHANGE_CURRENT_MOUSE_POSITION',
+    START_DRAW_SELECTED_AREA = 'START_DRAW_SELECTED_AREA',
+    REPLACE_SELECTED_ELEMENTS = 'REPLACE_SELECTED_ELEMENTS',
+    NO_USER_ACTION = 'NO_USER_ACTION',
+    OPEN_CONTEXT_MENU = 'OPEN_CONTEXT_MENU',
+    ACTIVATE_CONNECTOR_POINT = 'ACTIVATE_CONNECTOR_POINT',
+    REMOVE_ACTIVATED_CONNECTOR_POINT = 'REMOVE_ACTIVATED_CONNECTOR_POINT',
+    START_DRAW_CONNECTION = 'START_DRAW_CONNECTION',
+    SELECT_CONNECTIONS = 'SELECT_CONNECTIONS'
 }
 
 export enum WorkspaceStateEnum {
     NO_USER_INTERACTION = 'NO_USER_INTERACTION',
-    DRAGGING_ELEMENT = 'DRAGGING_ELEMENT',
-    DRAG_ELEMENT = 'DRAG_ELEMENT',
-    DROP_ELEMENT = 'DROP_ELEMENT',
-    ACTIVATE_CONNECTOR_POINT = 'ACTIVATE_CONNECTOR_POINT',
-    REMOVE_ACTIVATED_CONNECTOR_POINT = 'REMOVE_ACTIVATED_CONNECTOR_POINT',
-    OPEN_CONTEXT_MENU = 'OPEN_CONTEXT_MENU',
-    CLOSE_CONTEXT_MENU = 'CLOSE_CONTEXT_MENU',
-    OPENED_CONTEXT_MENU = 'OPENED_CONTEXT_MENU',
-    START_DRAW_SELECTED_AREA = 'START_DRAW_SELECTED_AREA',
+    DRAGGING_ELEMENTS = 'DRAGGING_ELEMENTS',
     DRAWING_SELECTED_AREA = 'DRAWING_SELECTED_AREA',
-    REPLACE_SELECTED_ELEMENTS = 'REPLACE_SELECTED_ELEMENTS',
+    DRAWING_CONNECTION = 'DRAW_CONNECTION',
+    OPENED_CONTEXT_MENU = 'OPENED_CONTEXT_MENU',
 }
 
 export const initWorkspaceState: WorkspaceState = {
     type: WorkspaceStateEnum.NO_USER_INTERACTION,
     contextMenuElement: null,
     selectedElements: [],
+    selectedConnection: null,
     draggableElements: [],
-    activeConnectorPoints: [],
+    selectedConnectorPoint: null,
+    highlightConnectorPoints: [],
     previousPosition: {x: 0, y: 0},
     currentPosition: {x: 0, y: 0},
 };
 
 export default (state: WorkspaceState, action: BaseAction): WorkspaceState => {
-    const {type, currentMousePosition} = action;
+    const {currentMousePosition} = action;
     switch (action.type) {
-        case WorkspaceStateEnum.DRAG_ELEMENT: {
-            const element = action.element as Element;
+        case WorkspaceActionEnum.START_DRAG_ELEMENT: {
+            const elements = action.elements as Element[];
             return {
                 ...state,
-                type,
-                draggableElements: [element],
-                selectedElements: [element],
-                activeConnectorPoints: [],
-                previousPosition: currentMousePosition || {x: 0, y: 0},
-                currentPosition: currentMousePosition || {x: 0, y: 0},
-            };
-        }
-        case WorkspaceStateEnum.DRAGGING_ELEMENT: {
-            return {
-                ...state,
-                type,
+                type: WorkspaceStateEnum.DRAGGING_ELEMENTS,
+                draggableElements: elements,
+                selectedElements: elements,
                 previousPosition: state.currentPosition,
-                currentPosition: currentMousePosition || {x: 0, y: 0},
+                currentPosition: state.currentPosition
             };
         }
-        case WorkspaceStateEnum.DROP_ELEMENT: {
+        case WorkspaceActionEnum.START_DRAG_ELEMENTS: {
             return {
                 ...state,
-                type,
-                draggableElements: []
+                type: WorkspaceStateEnum.DRAGGING_ELEMENTS,
+                draggableElements: state.selectedElements,
+                previousPosition: state.currentPosition,
+                currentPosition: state.currentPosition
             };
         }
-        case WorkspaceStateEnum.ACTIVATE_CONNECTOR_POINT: {
-            const element = action.element as Element;
-            const connectorPointIndex = action.connectorPointIndex || 0;
+        case WorkspaceActionEnum.DRAG_ELEMENTS: {
             return {
                 ...state,
-                activeConnectorPoints: [{element, connectorPointIndex}]
+                previousPosition: state.currentPosition
             };
         }
-        case WorkspaceStateEnum.REMOVE_ACTIVATED_CONNECTOR_POINT: {
+        case WorkspaceActionEnum.DROP_ELEMENTS: {
             return {
                 ...state,
-                activeConnectorPoints: []
-            };
-        }
-        case WorkspaceStateEnum.OPEN_CONTEXT_MENU: {
-            return {
-                ...state,
-                type: WorkspaceStateEnum.OPENED_CONTEXT_MENU,
-                contextMenuElement: action.element,
-                currentPosition: currentMousePosition || {x: 0, y: 0},
-            };
-        }
-        case WorkspaceStateEnum.CLOSE_CONTEXT_MENU: {
-            return {
-                ...state,
-                contextMenuElement: null,
                 type: WorkspaceStateEnum.NO_USER_INTERACTION,
+                draggableElements: [],
             };
         }
-        case WorkspaceStateEnum.NO_USER_INTERACTION: {
+        case WorkspaceActionEnum.CHANGE_CURRENT_MOUSE_POSITION: {
             return {
                 ...state,
-                type,
-                selectedElements: [],
-                draggableElements: []
-            };
-        }
-        case WorkspaceStateEnum.START_DRAW_SELECTED_AREA: {
-            return {
-                ...state,
-                type,
-                previousPosition: currentMousePosition || {x: 0, y: 0},
                 currentPosition: currentMousePosition || {x: 0, y: 0},
             };
         }
-        case WorkspaceStateEnum.DRAWING_SELECTED_AREA: {
+        case WorkspaceActionEnum.START_DRAW_SELECTED_AREA: {
             return {
                 ...state,
                 type: WorkspaceStateEnum.DRAWING_SELECTED_AREA,
-                currentPosition: currentMousePosition || {x: 0, y: 0},
+                previousPosition: state.currentPosition,
+                currentPosition: state.currentPosition
             };
         }
-        case WorkspaceStateEnum.REPLACE_SELECTED_ELEMENTS: {
+        case WorkspaceActionEnum.REPLACE_SELECTED_ELEMENTS: {
+            const elements = action.elements as Element[];
             return {
                 ...state,
-                selectedElements: action.selectedElements || state.selectedElements
-            }
+                selectedElements: elements
+            };
+        }
+        case WorkspaceActionEnum.NO_USER_ACTION: {
+            return {
+                ...state,
+                type: WorkspaceStateEnum.NO_USER_INTERACTION,
+                selectedConnection: null,
+                highlightConnectorPoints: [],
+
+            };
+        }
+        case WorkspaceActionEnum.OPEN_CONTEXT_MENU: {
+            const elements = action.elements as Element[];
+            return {
+                ...state,
+                type: WorkspaceStateEnum.OPENED_CONTEXT_MENU,
+                contextMenuElement: elements[0]
+            };
+        }
+        case WorkspaceActionEnum.ACTIVATE_CONNECTOR_POINT: {
+            const elements = action.elements as Element[];
+            const connectorPointIndex = action.connectorPointIndex || 0;
+            return {
+                ...state,
+                highlightConnectorPoints: [{element: elements[0], connectorPointIndex}]
+            };
+        }
+        case WorkspaceActionEnum.REMOVE_ACTIVATED_CONNECTOR_POINT: {
+            return {
+                ...state,
+                highlightConnectorPoints: []
+            };
+        }
+        case WorkspaceActionEnum.START_DRAW_CONNECTION: {
+            const elements = action.elements as Element[];
+            const connectorPointIndex = action.connectorPointIndex || 0;
+            return {
+                ...state,
+                type: WorkspaceStateEnum.DRAWING_CONNECTION,
+                selectedConnection: null,
+                selectedConnectorPoint: {element: elements[0], connectorPointIndex}
+            };
+        }
+        case WorkspaceActionEnum.SELECT_CONNECTIONS: {
+            return {
+                ...state,
+                selectedConnection: action.selectedConnection as Connection
+            };
         }
         default:
             return state;
     }
 };
 
-export const createDropElementAction = (e: MouseEvent) => ({
-    type: WorkspaceStateEnum.DROP_ELEMENT,
-    currentMousePosition: {x: e.clientX, y: e.clientY}
-});
-export const createDragElementAction = (element: Element, e: MouseEvent) => ({
-    type: WorkspaceStateEnum.DRAG_ELEMENT,
-    element,
-    currentMousePosition: {x: e.clientX, y: e.clientY}
-});
-export const createDraggingElementAction = (e: MouseEvent) => ({
-    type: WorkspaceStateEnum.DRAGGING_ELEMENT,
-    currentMousePosition: {x: e.clientX, y: e.clientY}
+export const createStartDragElementAction = (element: Element) => ({
+    type: WorkspaceActionEnum.START_DRAG_ELEMENT, elements: [element]
 });
 
-export const createNoUserInteractionAction = () => ({
-    type: WorkspaceStateEnum.NO_USER_INTERACTION
-});
+export const createDropElementsAction = () => (
+    {type: WorkspaceActionEnum.DROP_ELEMENTS}
+);
 
-export const createOpenContextMenuAction = (element: Element, e: MouseEvent) => ({
-    type: WorkspaceStateEnum.OPEN_CONTEXT_MENU,
-    element,
-    currentMousePosition: {x: e.clientX, y: e.clientY}
-});
+export const createOpenContextMenuAction = (element: Element) => (
+    {
+        type: WorkspaceActionEnum.OPEN_CONTEXT_MENU,
+        elements: [element]
+    }
+);
+
+export const createActivateConnectorPointAction = (element: Element, connectorPointIndex: number) => (
+    {
+        type: WorkspaceActionEnum.ACTIVATE_CONNECTOR_POINT,
+        elements: [element],
+        connectorPointIndex
+    }
+);
+
+export const createChangeCurrentMousePositionAction = (e: MouseEvent) => (
+    {
+        type: WorkspaceActionEnum.CHANGE_CURRENT_MOUSE_POSITION,
+        currentMousePosition: {x: e.clientX, y: e.clientY}
+    }
+);
+

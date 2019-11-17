@@ -3,7 +3,7 @@ import {ConnectorPoint, Point} from '../types';
 import {fromCartesianToPolarVector, fromPolarToCartesianVector} from "../helpers/vectors";
 
 export default ({firstPointConnector, currentMousePosition}
-                    : { firstPointConnector: ConnectorPoint| undefined, currentMousePosition: Point|undefined }) => {
+                    : { firstPointConnector: ConnectorPoint| undefined | null, currentMousePosition: Point|undefined }) => {
     if (!firstPointConnector || !currentMousePosition) {
         return null;
     }

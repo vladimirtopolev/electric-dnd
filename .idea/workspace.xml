@@ -2,13 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1826023d-aad5-49f9-bcf7-48bcc8f46ef5" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/helpers/getElementsInsideSelectedArea.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/workspaceReducer.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/t.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/helpers/useElementsAndConnectionsManager.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/elements/ContextMenu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/ContextMenu.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/SvgConnector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgConnection.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/elements/SvgDynamicConnector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgDynamicConnector.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/SvgElement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgElement.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/helpers/vectors.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/helpers/vectors.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/helpers/isPointBelongConnector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/helpers/isPointBelongConnector.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/workspaceReducer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/workspaceReducer.tsx" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -119,7 +120,8 @@
       <workItem from="1573542009351" duration="103000" />
       <workItem from="1573556966879" duration="12944000" />
       <workItem from="1573641717492" duration="3898000" />
-      <workItem from="1573648243066" duration="9638000" />
+      <workItem from="1573648243066" duration="10175000" />
+      <workItem from="1573825052999" duration="17390000" />
     </task>
     <servers />
   </component>

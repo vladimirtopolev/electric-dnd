@@ -1,13 +1,13 @@
 import React from 'react';
-import {Connector, Element} from '../types';
+import {Connection, Element} from '../types';
 import {fromCartesianToPolarVector, fromPolarToCartesianVector} from '../helpers/vectors';
 
-export default ({connection, elements, onConnectorClick, selectedConnectors}:
+export default ({connection, elements, onConnectorClick, selectedConnection}:
                     {
-                        connection: Connector,
+                        connection: Connection,
                         elements: Element[],
-                        selectedConnectors: Connector[],
-                        onConnectorClick: (connector: Connector) => void
+                        selectedConnection: Connection | undefined | null,
+                        onConnectorClick: (connector: Connection) => void
                     }) => {
     const {first, second} = connection;
     const element1 = elements.find(el => el.id === first.element.id) || {x: 0, y: 0, rotate: 0};
@@ -28,7 +28,7 @@ export default ({connection, elements, onConnectorClick, selectedConnectors}:
     const x2 = cartesianConnector2WithRotation.dx + element2.x;
     const y2 = cartesianConnector2WithRotation.dy + element2.y;
 
-    const isSelectedConnector = selectedConnectors.some(con => con.id === connection.id);
+    const isSelectedConnector = selectedConnection && (selectedConnection.id === connection.id);
     return (
         <g onClick={() => {
             onConnectorClick(connection)
