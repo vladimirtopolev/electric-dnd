@@ -39,6 +39,8 @@ export default ({
     const groupRef = useRef<SVGGElement>(null);
     const [groupBorder, setGroupBorder] = useState<DOMRect>(new DOMRect(0, 0, 0, 0));
 
+    const labelPosition = element.getLabelPosition();
+
     useEffect(() => {
         if (groupRef.current) {
             setGroupBorder(groupRef.current.getBoundingClientRect());
@@ -59,6 +61,9 @@ export default ({
            onClick={(e: MouseEvent) => clickElementHandler(element, e)}
         >
             {element.render()}
+            <g transform={`translate(${labelPosition.dx}, ${labelPosition.dy})`}>
+                <text>{element.label}</text>
+            </g>
             {element.getConnectors().map((point, i) => {
                 return (
                     <Fragment key={i}>
@@ -69,7 +74,7 @@ export default ({
                                 fillOpacity={isActiveConnectorPoint(element, i) ? 1 : 0}/>
                         <circle cx={point.x}
                                 cy={point.y}
-                                r={10}
+                                r={4}
                                 fill={'black'}
                                 fillOpacity={0}
                                 onMouseDown={(e: MouseEvent) => mouseDownConnectorHandler(element, i, e)}

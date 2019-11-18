@@ -45,15 +45,28 @@ export interface PolarVector {
     deg: number
 }
 
+export interface WorkspacePosition {
+    scale: number,
+    x: 0,
+    y: 0
+}
 
 export interface Element {
     id: string,
+    type: string,
     originX: number,
     originY: number,
     x: number,
     y: number,
     rotate: number,
     getBorders: () => CartesianVector,
+    getLabelPosition: () => CartesianVector,
     getConnectors: () => Point[],
-    render: () => JSX.Element
+    render: () => JSX.Element,
+    label: string,
+    getInitLabel?: (elements:Element[]) => string,
+}
+
+export interface ElementData {
+    label: ''
 }

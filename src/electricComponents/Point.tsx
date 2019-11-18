@@ -11,24 +11,23 @@ export default {
     id: new Date().getUTCMilliseconds().toString(),
     getConnectors: () => {
         return [{
-            x: 20,
-            y: 0
+            x: 5,
+            y: -1
         }];
     },
     getLabelPosition: () => {
         return {
-            dx: 42,
-            dy: 35,
+            dx: 8,
+            dy: 8,
         }
     },
     getBorders: () => {
-        return {dx: 40, dy: 50}
+        return {dx: 8, dy: 8}
     },
     render: () => (
         <>
-            <line x1={20} y1={0} x2={20} y2={10} stroke="black" strokeWidth="3"/>
-            <circle cx={20} cy={30} r={20}
-                    stroke="black" strokeWidth="3" fill="#fff" fillOpacity={0}/>
+            <circle cx={5} cy={5} r={3}
+                    stroke="black" strokeWidth="3" fill="black"/>
         </>
     ),
     label: '',

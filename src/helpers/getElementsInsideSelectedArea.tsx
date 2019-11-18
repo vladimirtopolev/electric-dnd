@@ -1,13 +1,14 @@
-import {Point, Element} from '../types';
+import {Point, Element, WorkspacePosition} from '../types';
 import {rotateCartesianVector} from './vectors';
 
-export default (elements: Element[], selectedArea: { start: Point, end: Point }): Element[] => {
+export default (elements: Element[], selectedArea: { start: Point, end: Point }, workspacePosition: WorkspacePosition): Element[] => {
 
+    const {scale} = workspacePosition;
     const {start, end} = selectedArea;
-    const x1Outer = Math.min(start.x, end.x);
-    const x2Outer = Math.max(start.x, end.x);
-    const y1Outer = Math.min(start.y, end.y);
-    const y2Outer = Math.max(start.y, end.y);
+    const x1Outer = Math.min(start.x / scale, end.x / scale);
+    const x2Outer = Math.max(start.x / scale, end.x / scale);
+    const y1Outer = Math.min(start.y / scale, end.y / scale);
+    const y2Outer = Math.max(start.y / scale, end.y / scale);
 
 
     return elements.filter(el => {
