@@ -3,6 +3,7 @@ import {MouseEvent} from 'react'
 
 export interface WorkspaceState {
     type: WorkspaceStateEnum,
+    workspacePosition: Point,
     contextMenuElement: Element | null | undefined,
     draggableElements: Element[],
     highlightConnectorPoints: ConnectorPoint[],
@@ -17,6 +18,7 @@ export interface WorkspaceState {
 export interface BaseAction {
     type: WorkspaceActionEnum,
     elements?: Element[],
+    workspacePosition?: Point,
     connectorPointIndex?: number,
     currentMousePosition?: Point,
     selectedElements?: Element[],
@@ -24,6 +26,7 @@ export interface BaseAction {
 }
 
 export enum WorkspaceActionEnum {
+    CHANGE_WORKSPACE_POSITION = 'CHANGE_WORKSPACE_POSITION',
     START_DRAG_ELEMENT = 'START_DRAG_ELEMENT',
     START_DRAG_ELEMENTS = 'START_DRAG_ELEMENTS',
     DRAG_ELEMENTS = 'DRAG_ELEMENTS',
@@ -49,6 +52,7 @@ export enum WorkspaceStateEnum {
 
 export const initWorkspaceState: WorkspaceState = {
     type: WorkspaceStateEnum.NO_USER_INTERACTION,
+    workspacePosition: {x: 0, y: 0},
     contextMenuElement: null,
     selectedElements: [],
     selectedConnection: null,
@@ -62,6 +66,12 @@ export const initWorkspaceState: WorkspaceState = {
 export default (state: WorkspaceState, action: BaseAction): WorkspaceState => {
     const {currentMousePosition} = action;
     switch (action.type) {
+        case WorkspaceActionEnum.CHANGE_WORKSPACE_POSITION: {
+            return {
+                ...state,
+                workspacePosition: action.workspacePosition as Point
+            }
+        }
         case WorkspaceActionEnum.START_DRAG_ELEMENT: {
             const elements = action.elements as Element[];
             return {
@@ -96,9 +106,13 @@ export default (state: WorkspaceState, action: BaseAction): WorkspaceState => {
             };
         }
         case WorkspaceActionEnum.CHANGE_CURRENT_MOUSE_POSITION: {
+            const mousePosition = currentMousePosition || {x: 0, y: 0};
             return {
                 ...state,
-                currentPosition: currentMousePosition || {x: 0, y: 0},
+                currentPosition: {
+                    x: mousePosition.x - state.workspacePosition.x,
+                    y: mousePosition.y - state.workspacePosition.y
+                },
             };
         }
         case WorkspaceActionEnum.START_DRAW_SELECTED_AREA: {
@@ -191,7 +205,7 @@ export const createActivateConnectorPointAction = (element: Element, connectorPo
     }
 );
 
-export const createChangeCurrentMousePositionAction = (e: MouseEvent) => (
+export const createChangeCurrentMousePositionAction = (e: MouseEvent, workspacePosition: Point) => (
     {
         type: WorkspaceActionEnum.CHANGE_CURRENT_MOUSE_POSITION,
         currentMousePosition: {x: e.clientX, y: e.clientY}

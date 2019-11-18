@@ -47,8 +47,8 @@ export interface PolarVector {
 
 export interface WorkspacePosition {
     scale: number,
-    x: 0,
-    y: 0
+    x: number,
+    y: number
 }
 
 export interface Element {

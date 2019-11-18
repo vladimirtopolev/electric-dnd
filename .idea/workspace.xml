@@ -2,14 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1826023d-aad5-49f9-bcf7-48bcc8f46ef5" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/electricComponents/Point.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/electricComponents/Generator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/electricComponents/Generator.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/SelectingArea.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SelectingArea.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/SvgDynamicConnector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgDynamicConnector.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/elements/SvgElement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/elements/SvgElement.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/helpers/getElementsInsideSelectedArea.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/helpers/getElementsInsideSelectedArea.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/helpers/useElementsAndConnectionsManager.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/helpers/useElementsAndConnectionsManager.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/types/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/workspaceReducer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/workspaceReducer.tsx" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

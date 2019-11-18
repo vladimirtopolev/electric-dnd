@@ -1,4 +1,4 @@
-import React, {KeyboardEvent, MouseEvent, useEffect, useReducer, useState, WheelEvent} from 'react';
+import React, {Fragment, KeyboardEvent, MouseEvent, useEffect, useReducer, useRef, useState, WheelEvent} from 'react';
 import {Connection, Element, WorkspacePosition} from './types';
 import workspaceReducer, {
     createActivateConnectorPointAction,
@@ -25,13 +25,20 @@ import isDeleteBtn from './helpers/isDeleteBtn';
 import useElementsAndConnectionsManager from './helpers/useElementsAndConnectionsManager';
 
 function App() {
-    const {elements, setElements, connections, setConnections, deleteElements} = useElementsAndConnectionsManager();
+    const {elements, setElements, connections, setConnections, deleteElements, deleteConnections} = useElementsAndConnectionsManager();
     const [workspaceState, dispatch] = useReducer(workspaceReducer, initWorkspaceState);
     const [workspacePosition, setWorkspacePosition] = useState<WorkspacePosition>({
         scale: 1,
         x: 0,
         y: 0
     });
+    const [workspaceMode, changeWorkspaceMode] = useState('normal');
+
+    const [draggingWorkspaceState, setDraggingWorkspaceState] = useState<{
+        isDraggingWorkspace: boolean, prevMousePosition: { x: number, y: number }
+    }>
+    ({isDraggingWorkspace: false, prevMousePosition: {x: 0, y: 0}});
+
     const setScale = (delta: number) => workspacePosition.scale + delta > 0 && setWorkspacePosition({
         ...workspacePosition,
         scale: workspacePosition.scale + delta
@@ -83,7 +90,7 @@ function App() {
     const mouseMoveConnectorHandler = (element: Element, connectorPointIndex: number, e: MouseEvent) => {
         e.stopPropagation();
         dispatch(createActivateConnectorPointAction(element, connectorPointIndex));
-        dispatch(createChangeCurrentMousePositionAction(e));
+        dispatch(createChangeCurrentMousePositionAction(e, workspacePosition));
     };
 
     const mouseDownConnectorHandler = (element: Element, connectorPointIndex: number, e: MouseEvent) => {
@@ -142,125 +149,174 @@ function App() {
             selectedConnection: connection
         });
     };
-
+    const containerRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const {x, y} = containerRef.current && containerRef.current.getBoundingClientRect() || {x: 0, y: 0};
+        dispatch({type: WorkspaceActionEnum.CHANGE_WORKSPACE_POSITION, workspacePosition: {x, y}});
+    }, [workspaceState.workspacePosition.x, workspaceState.workspacePosition.y]);
 
     return (
-        <div style={{padding: 0, margin: 0, position: 'relative', outline: 'none'}}
-             tabIndex={0}
-             onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
-                 const baseShift = 2;
-                 const offset = getMoveDirection(e);
-                 const deleteElement = isDeleteBtn(e);
-                 if (deleteElement) {
-                     deleteElements(workspaceState.selectedElements);
-                     return;
-                 }
-                 const newElements = elements.reduce((memo, el) => {
-                     const isSelectedElement = workspaceState.selectedElements.find(selEl => selEl.id === el.id);
-                     return isSelectedElement
-                         ? [...memo, {...el, x: el.x + offset.dx * baseShift, y: el.y + offset.dy * baseShift}]
-                         : [...memo, el];
-                 }, [] as Element[]);
-                 setElements(newElements);
-             }}>
-            <svg width="100%"
-                 height={500}
-                 onWheel={(e: WheelEvent<SVGSVGElement>) => {
-                     e.deltaY < 0 && setScale(0.1);
-                     e.deltaY > 0 && setScale(-0.1);
-                 }}
-                 onMouseDown={(e: MouseEvent) => {
-                     dispatch({type: WorkspaceActionEnum.START_DRAW_SELECTED_AREA});
-                 }}
-                 onMouseMove={(e: MouseEvent) => {
-                     if (workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENTS) {
-                         dispatch({type: WorkspaceActionEnum.DRAG_ELEMENTS});
+        <Fragment>
+            <div>{workspaceMode}</div>
+            <div style={{padding: 0, margin: 0, position: 'relative', outline: 'none'}}
+                 tabIndex={0}
+                 ref={containerRef}
+                 onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
+                     const baseShift = 2;
+                     const offset = getMoveDirection(e);
+                     const deleteElement = isDeleteBtn(e);
+                     if (deleteElement) {
+                         workspaceState.selectedConnection && deleteConnections(workspaceState.selectedConnection);
+                         workspaceState.selectedElements.length > 0 && deleteElements(workspaceState.selectedElements);
+                         return;
                      }
-                     if (workspaceState.highlightConnectorPoints.length > 0) {
-                         dispatch({type: WorkspaceActionEnum.REMOVE_ACTIVATED_CONNECTOR_POINT});
-                     }
-                     dispatch(createChangeCurrentMousePositionAction(e));
-                 }}
-                 onMouseUp={(e: MouseEvent) => {
-                     if (workspaceState.type === WorkspaceStateEnum.DRAWING_SELECTED_AREA) {
-                         dispatch({
-                             type: WorkspaceActionEnum.REPLACE_SELECTED_ELEMENTS,
-                             elements: getElementsInsideSelectedArea(
-                                 elements, {
-                                     start: workspaceState.previousPosition,
-                                     end: workspaceState.currentPosition
-                                 },
-                                 workspacePosition)
-                         });
-                     }
-                     dispatch({type: WorkspaceActionEnum.NO_USER_ACTION});
-                 }}
-                 onContextMenu={(e: MouseEvent) => {
-                 }}
-            >
-                <g transform={`scale(${workspacePosition.scale}) translate(${workspacePosition.x}, ${workspacePosition.y})`}>
-                    {workspaceState.type === WorkspaceStateEnum.DRAWING_CONNECTION
-                    && <SvgDynamicConnector firstPointConnector={workspaceState.selectedConnectorPoint}
-                                            currentMousePosition={workspaceState.currentPosition}
-                                            workspacePosition={workspacePosition}/>}
-                    {connections.map((connection, i) => {
-                        return <SvgConnection key={i}
-                                              connection={connection}
-                                              elements={elements}
-                                              selectedConnection={workspaceState.selectedConnection}
-                                              onConnectorClick={clickConnectorHandler}
-                        />;
-                    })}
-                    {elements.map((element, i) => {
-                        return <SvgElement
-                            key={i}
-                            element={element}
-                            doubleClickElementHandler={doubleClickElementHandler}
-                            mouseDownElementHandler={mouseDownElementHandler}
-                            mouseUpElementHandler={mouseUpElementHandler}
-                            contextMenuElementHandler={contextMenuElementHandler}
-                            mouseDownConnectorHandler={mouseDownConnectorHandler}
-                            mouseUpConnectorHandler={mouseUpConnectorHandler}
-                            mouseMoveConnectorHandler={mouseMoveConnectorHandler}
-                            clickElementHandler={clickElementHandler}
-                            isActiveConnectorPoint={isActiveConnectorPoint}
-                            isActive={!!elements.find(el => workspaceState.selectedElements.map(e => e.id).includes(element.id))}
-                        />;
-                    })}
-                    {workspaceState.type === WorkspaceStateEnum.DRAWING_SELECTED_AREA
-                    && <SelectingArea start={workspaceState.previousPosition}
-                                      end={workspaceState.currentPosition}
-                                      workspacePosition={workspacePosition}/>}
-                </g>
-            </svg>
+                     const newElements = elements.reduce((memo, el) => {
+                         const isSelectedElement = workspaceState.selectedElements.find(selEl => selEl.id === el.id);
+                         return isSelectedElement
+                             ? [...memo, {...el, x: el.x + offset.dx * baseShift, y: el.y + offset.dy * baseShift}]
+                             : [...memo, el];
+                     }, [] as Element[]);
+                     setElements(newElements);
+                 }}>
 
-            {workspaceState.type === WorkspaceStateEnum.OPENED_CONTEXT_MENU
-            && <ContextMenu
-                contextPosition={workspaceState.currentPosition}
-                contextMenuElement={workspaceState.contextMenuElement}
-                elements={elements}
-                closeContextMenu={() => dispatch({type: WorkspaceActionEnum.NO_USER_ACTION})}
-                deleteElement={(element: Element) => deleteElements([element])}
-                setElements={setElements}
-            />}
-            <div>
-                <button onClick={() => {
-                    setElements([...elements, {
-                        ...GeneratorElement,
-                        id: new Date().getUTCMilliseconds().toString(),
-                        label: GeneratorElement.getInitLabel && GeneratorElement.getInitLabel(elements) || ''
-                    }]);
-                }}>G
-                </button>
-                <button onClick={() => {
-                    setElements([...elements, {
-                        ...PointElement,
-                        id: new Date().getUTCMilliseconds().toString(),
-                    }]);
-                }}>P
-                </button>
+                <svg width="100%"
+                     style={{position: 'relative', zIndex: 10}}
+                     height={500}
+                     onWheel={(e: WheelEvent<SVGSVGElement>) => {
+                         e.deltaY < 0 && setScale(0.1);
+                         e.deltaY > 0 && setScale(-0.1);
+                     }}
+                     onMouseDown={(e: MouseEvent) => {
+                         dispatch({type: WorkspaceActionEnum.START_DRAW_SELECTED_AREA});
+                     }}
+                     onMouseMove={(e: MouseEvent) => {
+                         if (workspaceState.type === WorkspaceStateEnum.DRAGGING_ELEMENTS) {
+                             dispatch({type: WorkspaceActionEnum.DRAG_ELEMENTS});
+                         }
+                         if (workspaceState.highlightConnectorPoints.length > 0) {
+                             dispatch({type: WorkspaceActionEnum.REMOVE_ACTIVATED_CONNECTOR_POINT});
+                         }
+                         dispatch(createChangeCurrentMousePositionAction(e, workspacePosition));
+                     }}
+                     onMouseUp={(e: MouseEvent) => {
+                         if (workspaceState.type === WorkspaceStateEnum.DRAWING_SELECTED_AREA) {
+                             dispatch({
+                                 type: WorkspaceActionEnum.REPLACE_SELECTED_ELEMENTS,
+                                 elements: getElementsInsideSelectedArea(
+                                     elements, {
+                                         start: workspaceState.previousPosition,
+                                         end: workspaceState.currentPosition
+                                     },
+                                     workspacePosition)
+                             });
+                         }
+                         dispatch({type: WorkspaceActionEnum.NO_USER_ACTION});
+                     }}
+                     onContextMenu={(e: MouseEvent) => {
+                     }}
+                >
+                    <g transform={`scale(${workspacePosition.scale}) translate(${workspacePosition.x}, ${workspacePosition.y})`}>
+                        {workspaceState.type === WorkspaceStateEnum.DRAWING_CONNECTION
+                        && <SvgDynamicConnector firstPointConnector={workspaceState.selectedConnectorPoint}
+                                                currentMousePosition={workspaceState.currentPosition}
+                                                workspacePosition={workspacePosition}/>}
+                        {connections.map((connection, i) => {
+                            return <SvgConnection key={i}
+                                                  connection={connection}
+                                                  elements={elements}
+                                                  selectedConnection={workspaceState.selectedConnection}
+                                                  onConnectorClick={clickConnectorHandler}
+                            />;
+                        })}
+                        {elements.map((element, i) => {
+                            return <SvgElement
+                                key={i}
+                                element={element}
+                                doubleClickElementHandler={doubleClickElementHandler}
+                                mouseDownElementHandler={mouseDownElementHandler}
+                                mouseUpElementHandler={mouseUpElementHandler}
+                                contextMenuElementHandler={contextMenuElementHandler}
+                                mouseDownConnectorHandler={mouseDownConnectorHandler}
+                                mouseUpConnectorHandler={mouseUpConnectorHandler}
+                                mouseMoveConnectorHandler={mouseMoveConnectorHandler}
+                                clickElementHandler={clickElementHandler}
+                                isActiveConnectorPoint={isActiveConnectorPoint}
+                                isActive={!!elements.find(el => workspaceState.selectedElements.map(e => e.id).includes(element.id))}
+                            />;
+                        })}
+                        {workspaceState.type === WorkspaceStateEnum.DRAWING_SELECTED_AREA
+                        && <SelectingArea start={workspaceState.previousPosition}
+                                          end={workspaceState.currentPosition}
+                                          workspacePosition={workspacePosition}/>}
+                    </g>
+                </svg>
+                <div style={{
+                    width: '100%',
+                    height: 500,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    zIndex: workspaceMode === 'normal' ? 0 : 11
+                }}
+                     onMouseDown={(e: MouseEvent) => {
+                         setDraggingWorkspaceState({
+                             isDraggingWorkspace: true,
+                             prevMousePosition: {x: e.clientX, y: e.clientY}
+                         });
+                     }}
+                     onMouseMove={(e: MouseEvent) => {
+                         if (draggingWorkspaceState.isDraggingWorkspace) {
+                             setWorkspacePosition({
+                                 ...workspacePosition,
+                                 x: workspacePosition.x + e.clientX - draggingWorkspaceState.prevMousePosition.x,
+                                 y: workspacePosition.y + e.clientY - draggingWorkspaceState.prevMousePosition.y
+                             });
+
+                             setDraggingWorkspaceState({
+                                 ...draggingWorkspaceState,
+                                 prevMousePosition: {x: e.clientX, y: e.clientY}
+                             })
+                         }
+                     }}
+                     onMouseUp={(e: MouseEvent) => {
+                         setDraggingWorkspaceState({
+                             isDraggingWorkspace: false,
+                             prevMousePosition: {x: e.clientX, y: e.clientY}
+                         });
+                     }}
+                />
+                {workspaceState.type === WorkspaceStateEnum.OPENED_CONTEXT_MENU
+                && <ContextMenu
+                    contextPosition={workspaceState.currentPosition}
+                    contextMenuElement={workspaceState.contextMenuElement}
+                    elements={elements}
+                    closeContextMenu={() => dispatch({type: WorkspaceActionEnum.NO_USER_ACTION})}
+                    deleteElement={(element: Element) => deleteElements([element])}
+                    setElements={setElements}
+                />}
+                <div>
+                    <button onClick={() => {
+                        changeWorkspaceMode(workspaceMode === 'normal' ? 'change' : 'normal');
+                    }}>Trigger
+                    </button>
+                    <button onClick={() => {
+                        setElements([...elements, {
+                            ...GeneratorElement,
+                            id: new Date().getUTCMilliseconds().toString(),
+                            label: GeneratorElement.getInitLabel && GeneratorElement.getInitLabel(elements) || ''
+                        }]);
+                    }}>G
+                    </button>
+                    <button onClick={() => {
+                        setElements([...elements, {
+                            ...PointElement,
+                            id: new Date().getUTCMilliseconds().toString(),
+                        }]);
+                    }}>P
+                    </button>
+                </div>
             </div>
-        </div>
+        </Fragment>
     );
 }
 

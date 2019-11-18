@@ -12,7 +12,7 @@ export default ({firstPointConnector, currentMousePosition, workspacePosition}
         return null;
     }
     const {element, connectorPointIndex: connectorIndex} = firstPointConnector;
-    const {scale} = workspacePosition;
+    const {scale, x: workspaceX, y: workspaceY} = workspacePosition;
     const {x: x2, y: y2} = currentMousePosition;
     const pointConnector = element.getConnectors()[connectorIndex];
 
@@ -23,6 +23,6 @@ export default ({firstPointConnector, currentMousePosition, workspacePosition}
     const x1 = cartesianConnectorWithRotation.dx + element.x;
     const y1 = cartesianConnectorWithRotation.dy + element.y;
     return (
-        <line x1={x1} y1={y1} x2={x2/scale} y2={y2/scale} stroke="black" strokeWidth="3"/>
+        <line x1={x1} y1={y1} x2={x2/scale - workspaceX} y2={y2/scale - workspaceY} stroke="black" strokeWidth="3"/>
     );
 };

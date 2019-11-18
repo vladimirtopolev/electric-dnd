@@ -3,12 +3,12 @@ import {rotateCartesianVector} from './vectors';
 
 export default (elements: Element[], selectedArea: { start: Point, end: Point }, workspacePosition: WorkspacePosition): Element[] => {
 
-    const {scale} = workspacePosition;
+    const {scale, x, y} = workspacePosition;
     const {start, end} = selectedArea;
-    const x1Outer = Math.min(start.x / scale, end.x / scale);
-    const x2Outer = Math.max(start.x / scale, end.x / scale);
-    const y1Outer = Math.min(start.y / scale, end.y / scale);
-    const y2Outer = Math.max(start.y / scale, end.y / scale);
+    const x1Outer = Math.min(start.x / scale - x, end.x / scale - x);
+    const x2Outer = Math.max(start.x / scale - x, end.x / scale - x);
+    const y1Outer = Math.min(start.y / scale - y, end.y / scale - y);
+    const y2Outer = Math.max(start.y / scale - y, end.y / scale - y);
 
 
     return elements.filter(el => {

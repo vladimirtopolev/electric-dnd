@@ -62,7 +62,7 @@ export default ({
         >
             {element.render()}
             <g transform={`translate(${labelPosition.dx}, ${labelPosition.dy})`}>
-                <text>{element.label}</text>
+                <text style={{userSelect: 'none'}}>{element.label}</text>
             </g>
             {element.getConnectors().map((point, i) => {
                 return (
@@ -74,7 +74,7 @@ export default ({
                                 fillOpacity={isActiveConnectorPoint(element, i) ? 1 : 0}/>
                         <circle cx={point.x}
                                 cy={point.y}
-                                r={4}
+                                r={5}
                                 fill={'black'}
                                 fillOpacity={0}
                                 onMouseDown={(e: MouseEvent) => mouseDownConnectorHandler(element, i, e)}
